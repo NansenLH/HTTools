@@ -239,27 +239,27 @@ extension HTWrapper where T: UIView {
     }
 }
 
-/// Animate
+// MARK: UIView Animate
 extension HTWrapper where T: UIView {
     /// 移动中心点
-    public func moveCenter(to center: CGPoint, time: TimeInterval = 0.3) {
+    public func animate_moveCenter(to center: CGPoint, time: TimeInterval = 0.3) {
         UIView.animate(withDuration: time, delay: 0) { 
             t.center = center
         } 
     }
     /// 位移
-    public func move(x: CGFloat, y: CGFloat, time: TimeInterval = 0.3) {
+    public func animate_move(x: CGFloat, y: CGFloat, time: TimeInterval = 0.3) {
         UIView.animate(withDuration: time, delay: 0) { 
             t.frame = CGRect(origin: CGPoint(x: t.ht.x+x, y: t.ht.y+y), size: t.frame.size)
         }
     }
     
     /// 缩放
-    public func scale(from: Double = 1.0, 
-                      to: Double, 
-                      time: TimeInterval = 0.3,
-                      reverse: Bool = true, 
-                      repeatCount: Float = 0) {
+    public func animate_scale(from: Double = 1.0, 
+                              to: Double, 
+                              time: TimeInterval = 0.3,
+                              reverse: Bool = true, 
+                              repeatCount: Float = 0) {
         
         t.layer.removeAnimation(forKey: "ht.scale")
         

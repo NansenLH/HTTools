@@ -23,8 +23,10 @@ import HTLogs
 
 @objc public enum HTAuthPhotosError: Int, Error {
     
+    case forbidden = 30000
     case notSelectImages = 30001
     case convertImageFailed = 30002
+    
     
     var domain: String {
         "HTError" 
@@ -37,6 +39,8 @@ import HTLogs
     
     public var localizedDescription: String { 
         switch self {
+            case .forbidden:
+                return "请同意\"照片\"权限后再试"
             case .notSelectImages:
                 return "未选择照片"
             case .convertImageFailed:
@@ -74,7 +78,7 @@ import HTLogs
         
         checkAuth { authed in
             if !authed {
-                complete(false, nil, "请在设置中打开照片权限后再试!")
+                complete(false, nil, HTAuthPhotosError.forbidden.localizedDescription)
                 return
             }
             
@@ -105,7 +109,7 @@ import HTLogs
         checkAuth { authed in
             if !authed {
                 HTLogs.logWarning("用户未开启相册权限")
-                complete(false, nil, "请在设置中打开照片权限后再试!")
+                complete(false, nil, HTAuthPhotosError.forbidden.localizedDescription)
                 return
             }
             canSaveImageToAlbum(image: image, albumName: albumName, complete: complete)

@@ -70,7 +70,7 @@ let package = Package(
         ),
         .target(
             name: "HTAuthCamera",
-            dependencies: [],
+            dependencies: ["HTLogs"],
             path: "Sources/HTAuthCamera"
         ),
         .target(
@@ -80,7 +80,7 @@ let package = Package(
         ),
         .target(
             name: "HTAuthLocation",
-            dependencies: [],
+            dependencies: ["HTLogs"],
             path: "Sources/HTAuthLocation"
         ),
         .target(

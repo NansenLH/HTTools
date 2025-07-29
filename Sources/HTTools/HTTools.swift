@@ -6,18 +6,20 @@ import HTLogs
 import UIKit
 import Network
 
-public func appInit() {
-    HTLogs.appConfig()
-    //    SDWebImageDownloader.shared.setValue("image/webp,image/*,*/*;q=0.8", forHTTPHeaderField: "Accept")
-    
-    HTTools.logDeviceInfo()
-}
+
 
 // MARK: - App相关
 public class HTTools {
     
     public static var appBundleID: String? {
         return Bundle.main.bundleIdentifier
+    }
+    
+    public static func appInit() {
+        HTLogs.appConfig()
+        //    SDWebImageDownloader.shared.setValue("image/webp,image/*,*/*;q=0.8", forHTTPHeaderField: "Accept")
+        
+        HTTools.logDeviceInfo()
     }
     
     
@@ -75,13 +77,6 @@ public class HTTools {
         return Bundle.main.appStoreReceiptURL?.path.contains("sandboxReceipt") == true
     }
 #endif
-    
-    
-    
-    
-    
-    
-    
     
 }
 

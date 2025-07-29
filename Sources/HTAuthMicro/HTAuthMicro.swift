@@ -15,7 +15,7 @@
 import Foundation
 import AVFoundation
 
-@objc public class HTAuthMicro {
+@objc public class HTAuthMicro: NSObject {
     
     /// 请求麦克风权限
     @objc public static func requestMicrophonePermission(completion: @escaping (Bool) -> Void) {

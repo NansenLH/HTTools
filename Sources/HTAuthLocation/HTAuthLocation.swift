@@ -28,7 +28,6 @@ import Foundation
 import CoreLocation
 import MapKit
 import Combine
-
 import HTLogs
 
 @objc public enum HTDaohangType: Int {
@@ -70,6 +69,10 @@ import HTLogs
     }
 }
 
+@objc public protocol HTAuthLocationProtocal: AnyObject {
+    func locationUpdate(location: CLLocation?, errorMsg: String?)
+}
+
 @objcMembers public class HTAuthLocation: NSObject {
     
     public static let shared = HTAuthLocation()
@@ -88,7 +91,7 @@ import HTLogs
         didSet {
             if let l = currentLocation {
                 HTLogs.logDebug("更新定位信息: 经度=\(l.coordinate.longitude), 纬度=\(l.coordinate.latitude), 高度=\(l.altitude)")
-                locationPublisher.send(l)
+                didUpdateLocation(location: l, errorMsg: nil)
             }
         }
     }
@@ -184,24 +187,38 @@ import HTLogs
     
     
     
-    let locationPublisher = PassthroughSubject<CLLocation, Error>()
-    /// 添加定位信息订阅者
-    public func addLocationSubscribe(valueClosure: @escaping (CLLocation) -> Void, 
-                                     failClosure: @escaping (String) -> Void) -> AnyCancellable {
-        locationPublisher.sink(receiveCompletion: { completion in
-            switch completion {
-                case .finished:
-                    
-                case .failure(let error):
-                    failClosure(error.localizedDescription)
-            }
-        }, receiveValue: valueClosure)
-    }
+    private var subscribes = NSHashTable<HTAuthLocationProtocal>.weakObjects()
+    private var subSemaphore = DispatchSemaphore(value: 1)
     
+    /// 添加定位信息订阅者
+    public func addSubscribe(_ sub: HTAuthLocationProtocal) {
+        subSemaphore.wait()
+        defer { subSemaphore.signal() }
+        
+        subscribes.add(sub)
+    }
+    public func removeSubscribe(_ sub: HTAuthLocationProtocal) {
+        subSemaphore.wait()
+        defer { subSemaphore.signal() }
+        
+        subscribes.remove(sub)
+    }
     /// 获取定位
     public func getBestLocation() {
         manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
         manager.startUpdatingLocation()
+    }
+    
+    private func didUpdateLocation(location: CLLocation?, errorMsg: String?) {
+        subSemaphore.wait()
+        let subs = subscribes.allObjects
+        subSemaphore.signal()
+        
+        DispatchQueue.main.async {
+            subs.forEach { sub in
+                sub.locationUpdate(location: location, errorMsg: errorMsg)
+            }
+        }
     }
     
     
@@ -275,7 +292,7 @@ extension HTAuthLocation: CLLocationManagerDelegate {
     
     public func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
         manager.stopUpdatingLocation()
-        locationPublisher.send(completion: .failure(error))
+        didUpdateLocation(location: nil, errorMsg: error.localizedDescription)
     }
     
 }
