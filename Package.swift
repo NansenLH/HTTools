@@ -60,7 +60,7 @@ let package = Package(
         ),
         .target(
             name: "HTNetTool",
-            dependencies: ["HTNetTool"],
+            dependencies: [],
             path: "Sources/HTNetTool"
         ),
         .target(

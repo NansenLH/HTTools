@@ -128,7 +128,6 @@ public class HTNetConnectInfo {
         if interfaceInfo.isEmpty == false {
             str += "interface: \n"
             interfaceInfo.forEach { interface in
-//                str += "    \(interface.debugDescription)\n"
                 str += "  \(interfaceDescription(interface: interface))\n"
             }
         }
