@@ -69,6 +69,7 @@ import HTLogs
     }
 }
 
+@MainActor
 @objc public protocol HTAuthLocationProtocal: AnyObject {
     func locationUpdate(location: CLLocation?, errorMsg: String?)
 }

@@ -16,7 +16,7 @@ import Foundation
 import AVFoundation
 import HTLogs
 
-
+@MainActor
 @objc public class HTAuthCamera: NSObject {
     
     /// 请求摄像头权限

@@ -4,9 +4,9 @@
 
 import HTLogs
 import UIKit
-import Network
-
-
+//import Network
+import Security
+import AdSupport
 
 // MARK: - App相关
 public class HTTools {
@@ -96,7 +96,7 @@ extension HTTools {
             RAM: \(memory.free.ht.byteDescription) / \(memory.total.ht.byteDescription),
             SSD: \(ssd.free.ht.byteDescription) / \(ssd.total.ht.byteDescription)
             """
-        HTLogs.logInfo("")
+        HTLogs.logInfo(deviceInfo)
     }
     
     /// 设备标识. 
@@ -275,25 +275,34 @@ extension HTTools {
             return (0, 0, 0)
         }
     }
+    
+    public static func getDeviceIdentityKeychain() async -> String {
+        let keychainTool = HTKeychainManager()
+        var identity = await keychainTool.getDeviceIdentifier()
+        if identity.isEmpty {
+            identity = ASIdentifierManager.shared().advertisingIdentifier.uuidString
+            if identity.isEmpty {
+                identity = UUID().uuidString
+            }
+            await keychainTool.saveDeviceIdentifier(identity)
+        }
+        return identity
+    }
 }
 
 // MARK: - 系统软件相关
 extension HTTools {
     
     /// 拨打电话
+    @MainActor
     public static func callTel(number: String) {
-        if let url = URL(string: "tel:"+number) {
-            DispatchQueue.global().async {
-                if UIApplication.shared.canOpenURL(url) {
-                    DispatchQueue.main.async {
-                        UIApplication.shared.open(url)
-                    }
-                }
-            }
+        if let url = URL(string: "tel:"+number), UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url)
         }
     }
     
     /// 浏览器打开链接
+    @MainActor
     public static func safariOpenUrl(url: URL) {
         if UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url)
@@ -301,6 +310,7 @@ extension HTTools {
     }
     
     /// 打开App设置页面
+    @MainActor
     public static func openAppSetting() {
         if let url = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url)
@@ -312,12 +322,23 @@ extension HTTools {
         return UIPasteboard.general.string
     }
     
+    /// 获取剪贴板文字
+    public static func getPasteboardText() async -> String? {
+        /**
+         UIPasteboard.general.string 尽量放到异步线程中执行, 在主线程会一定几率卡死. 
+         */
+        return await Task.detached { 
+            return UIPasteboard.general.string
+        }.value
+    }
+    
     /// 复制到粘贴板
     public static func saveToPasteboard(str: String) {
         UIPasteboard.general.string = str
     }
     
     /// 获得根控制器
+    @MainActor
     public static func rootViewController() -> UIViewController? {
         UIApplication.shared.connectedScenes
             .filter({$0.activationState == .foregroundActive})
@@ -328,12 +349,14 @@ extension HTTools {
     }
     
     /// 获得最上层控制器
+    @MainActor
     public static func topViewController() -> UIViewController? {
         guard let rootVC = rootViewController() else {
             return nil
         }
         return findTopVC(rootVC: rootVC)
     }
+    @MainActor
     static func findTopVC(rootVC: UIViewController?) -> UIViewController? {
         if rootVC == nil {
             return nil
@@ -358,6 +381,91 @@ extension HTTools {
 }
 
 
+
+
+actor HTKeychainManager {
+    
+    /// 钥匙串 服务名称
+    private let service: String = "CreateDeviceIdentifierByKeychain"
+    /// 钥匙串 账户名称
+    private let account: String = "VirtualDeviceIdentifier"
+    
+    /// 从钥匙串中获取设备标识符
+    func getDeviceIdentifier() async -> String {
+        
+        // 构建查询字典
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrSynchronizable as String: kCFBooleanFalse!,
+            kSecAttrAccount as String: account,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnData as String: kCFBooleanTrue!
+        ]
+        
+        // 查询钥匙串
+        var keychainPassword: CFTypeRef?
+        let queryResult = SecItemCopyMatching(query as CFDictionary, &keychainPassword)
+        
+        if queryResult == errSecSuccess {
+            if let data = keychainPassword as? Data {
+                if let identifier = String(data: data, encoding: .utf8) {
+                    if !identifier.isEmpty {
+                        return identifier
+                    } 
+                    else {
+                        // 数据为空，删除该项并重新创建
+                        await deleteDeviceIdentifier()
+                    }
+                } 
+                else {
+                    // 数据不是字符串，删除该项并重新创建
+                    await deleteDeviceIdentifier()
+                }
+            } 
+            else {
+                // keychainPassword 不是 Data 类型，删除该项并重新创建
+                await deleteDeviceIdentifier()
+            }
+        }
+        // 查询失败，返回空字符串（调用者需处理）
+        return ""
+    }
+    
+    /// 删除钥匙串中的设备标识符
+    func deleteDeviceIdentifier() async {
+        let deleteQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account
+        ]
+        
+        let status = SecItemDelete(deleteQuery as CFDictionary)
+        if status != errSecSuccess {
+            HTLogs.logError("删除钥匙串项失败！错误码: \(status)")
+        }
+    }
+    
+    /// 将设备标识符保存到钥匙串中
+    func saveDeviceIdentifier(_ identifier: String) async {
+        guard !identifier.isEmpty else { return }
+        
+        let data = identifier.data(using: .utf8)!
+        let createQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecAttrSynchronizable as String: kCFBooleanFalse!,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
+            kSecValueData as String: data
+        ]
+        
+        let createResult = SecItemAdd(createQuery as CFDictionary, nil)
+        if createResult != errSecSuccess {
+            HTLogs.logError("通过钥匙串创建设备唯一ID不成功！错误码: \(createResult)")
+        }
+    }
+}
 
 
 

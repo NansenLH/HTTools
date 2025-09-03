@@ -8,7 +8,7 @@
 import Foundation
 import Network
 
-public class HTNetConnectInfo {
+public class HTNetConnectInfo: Sendable {
     
     /// 网络模式
     public var interfaceType: NWInterface.InterfaceType = .other
@@ -193,6 +193,7 @@ public class HTNetConnectInfo {
         
         return ip
     }
+    
     func getIPAddr() -> [String: String] {
         
         let ipAddrV4 = "ipv4"

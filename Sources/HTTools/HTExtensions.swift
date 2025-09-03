@@ -329,8 +329,17 @@ extension HTWrapper where T: UIView {
             t.layer.borderColor = borderColor.cgColor
         }
     }
+    
+    /// 设置边框
+    public func viewConfigBorder(borderColor: UIColor, borderWidth: CGFloat, cornerRadius: CGFloat) {
+        t.layer.borderWidth = borderWidth
+        t.layer.borderColor = borderColor.cgColor
+        t.layer.cornerRadius = cornerRadius
+        t.layer.masksToBounds = true
+    }
+    
     /// 设置阴影
-    public func addShadow(color: UIColor, radius: CGFloat, offset: CGSize, opacity: Float) {
+    public func viewConfigShadow(color: UIColor, radius: CGFloat, offset: CGSize, opacity: Float) {
         t.clipsToBounds = false
         t.layer.masksToBounds = false
         
@@ -366,14 +375,14 @@ extension HTWrapper where T: UILabel {
 // MARK: - UIButton - Extension
 extension HTWrapper where T: UIButton {
     
-    public func buttonConfig(iconName: String, selectIconName: String? = nil) {
+    public func buttonConfigIcon(iconName: String, selectIconName: String? = nil) {
         t.setImage(UIImage(named: iconName), for: .normal)
         if let sIcon = selectIconName {
             t.setImage(UIImage(named: sIcon), for: .selected)
         }
     }
     
-    public func buttonConfig(title: String, font: UIFont, color: UIColor, selectTitle: String? = nil, selectColor: UIColor? = nil) {
+    public func buttonConfigTitle(title: String, font: UIFont, color: UIColor, selectTitle: String? = nil, selectColor: UIColor? = nil) {
         t.setTitle(title, for: .normal)
         t.setTitleColor(color, for: .normal)
         t.titleLabel?.font = font
@@ -387,8 +396,15 @@ extension HTWrapper where T: UIButton {
     }
 }
 
+
 // MARK: - UIImageView - Extension
 extension HTWrapper where T: UIImageView {
+    
+    public func imageViewConfig(mode: UIView.ContentMode, radius: CGFloat) {
+        t.contentMode = mode
+        t.layer.cornerRadius = radius
+        t.layer.masksToBounds = true
+    }
     
     public func imageViewConfig(iconName: String, mode: UIView.ContentMode = .scaleAspectFit, cornerRadius: CGFloat = 0, renderingColor: UIColor? = nil) {
         t.image = UIImage(named: iconName)
@@ -661,11 +677,11 @@ extension HTWrapper where T == String {
             HTLogs.logFatal("错误2 invalid encoding")
             return nil 
         }
-    
+        
         return decodedString
     }
     
-
+    
     /// 显示金额. show2表示保留两位小数. 默认显示
     public func moneyString(show2: Bool = true) -> String {
         let numberStr = t.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -736,6 +752,45 @@ extension HTWrapper where T == String {
         }
         else {
             return Date(timeIntervalSince1970: timestamp/1000)
+        }
+    }
+    
+    /// json字符串转成字典
+    public func jsonToDict() -> [String: Any]? {
+        guard let jsonData = t.data(using: .utf8) else {
+            HTLogs.logError("Json -> Dict Error. [1]")
+            return nil 
+        }
+        
+        do {
+            if let dict = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any] {
+                return dict
+            }
+        } catch {
+            HTLogs.logError("Json -> Dict Error. [2] \(error.localizedDescription)")
+        }
+        
+        return nil
+    }
+    /// json字符串转成数组
+    public func jsonToArray() -> [Any]? {
+        guard let jsonData = t.data(using: .utf8) else {
+            HTLogs.logError("Json -> Array Error. [1]")
+            return nil 
+        }
+        
+        do {
+            let jsonObject = try JSONSerialization.jsonObject(with: jsonData, options: [])
+            if let array = jsonObject as? [Any] {
+                return array
+            }
+            else {
+                HTLogs.logError("Json -> Array Error. [2] Not Array: \(type(of: jsonObject))")
+                return nil
+            }
+        } catch {
+            HTLogs.logError("Json -> Array Error. [3] \(error.localizedDescription)")
+            return nil
         }
     }
 }

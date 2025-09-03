@@ -30,6 +30,8 @@ import HTLogs
     var fullAddress: String?
 }
 
+
+@MainActor
 @objc public class HTAuthContact: NSObject, CNContactPickerDelegate {
     
     /// 请求通讯录权限

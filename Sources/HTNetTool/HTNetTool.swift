@@ -11,6 +11,7 @@ import CoreTelephony
 import Network
 
 
+@MainActor
 public protocol HTNetProtocal: AnyObject {
     func netChanged(connected: Bool)
     func netInfoChanged()

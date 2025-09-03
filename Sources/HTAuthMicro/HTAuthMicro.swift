@@ -15,17 +15,17 @@
 import Foundation
 import AVFoundation
 
+
+@MainActor
 @objc public class HTAuthMicro: NSObject {
     
     /// 请求麦克风权限
-    @objc public static func requestMicrophonePermission(completion: @escaping (Bool) -> Void) {
+    @objc public static func requestMicrophonePermission(completion: @MainActor @escaping (Bool) -> Void) {
         let audioSession = AVAudioSession.sharedInstance()
         switch audioSession.recordPermission {
             case .undetermined:
                 audioSession.requestRecordPermission { granted in
-                    DispatchQueue.main.async {
-                        completion(granted)
-                    }
+                    completion(granted)
                 }
             case .denied:
                 completion(false)

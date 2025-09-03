@@ -38,7 +38,8 @@ public class HTLogs {
         console.levelString.warning = "WAR"
         console.levelString.error   = "ERR"
         
-        
+        let appBundleId = Bundle.main.bundleIdentifier ?? "com.ht.htlogs"
+        console.logPrintWay = .logger(subsystem: appBundleId, category: "main")
         
         let fileD = FileDestination()
         fileD.levelColor.debug    = "❇️"     
@@ -118,6 +119,7 @@ public class HTLogs {
         return url
     }
     
+    @MainActor
     public static func showLogFile(in viewController: UIViewController) {
         guard let url = self.shared.logFileURL, FileManager.default.fileExists(atPath: url.path) else {
             showAlert(message: "未找到日志文件", in: viewController)
@@ -130,6 +132,7 @@ public class HTLogs {
     }
     
     // 辅助方法：显示提示
+    @MainActor
     private static func showAlert(message: String, in viewController: UIViewController) {
         let alert = UIAlertController(title: "提示", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "确定", style: .default))

@@ -9,7 +9,7 @@ import Foundation
 import Network
 import CoreTelephony
 
-public class HTNetConnectState: CustomStringConvertible {
+public class HTNetConnectState: CustomStringConvertible, Sendable {
     
     /// 蜂窝网络支持: [4G (LTE), 5G (NR SA)] 这样的结果, 如果不支持,就为空[]
     public var celluars: [HTCelluarType] = []
@@ -148,7 +148,7 @@ public class HTNetConnectState: CustomStringConvertible {
     }
 }
 
-public enum HTCelluarType: Equatable, CustomStringConvertible {
+public enum HTCelluarType: Equatable, CustomStringConvertible, Sendable {
     
     case undefined
     case _2G(type: HTCellular2G)
@@ -171,7 +171,7 @@ public enum HTCelluarType: Equatable, CustomStringConvertible {
         }
     }
     
-    public enum HTCellular2G: CustomStringConvertible {
+    public enum HTCellular2G: CustomStringConvertible, Sendable {
         case GPRS
         case EDGE
         
@@ -185,7 +185,7 @@ public enum HTCelluarType: Equatable, CustomStringConvertible {
         }
     } 
     
-    public enum HTCellular3G: CustomStringConvertible {
+    public enum HTCellular3G: CustomStringConvertible, Sendable {
         case WCDMA
         case HSDPA
         case HSUPA
@@ -217,7 +217,7 @@ public enum HTCelluarType: Equatable, CustomStringConvertible {
         }
     }
     
-    public enum HTCelluar5G: CustomStringConvertible {
+    public enum HTCelluar5G: CustomStringConvertible, Sendable {
         case NRNSA
         case NR
         public var description: String {
