@@ -6,20 +6,35 @@ import Foundation
 import UIKit
 import HTLogs
 
-public enum HTViewBorderSide {
-    case top
+@objc public enum HTViewBorderSide: Int {
+    case top = 0
     case bottom
     case left
     case right
 }
 
 
-public class HTView: UIView {
+@objc public class HTView: UIView {
     
-    var borderLayer: HTViewBorderLayer?
+    private var borderLayer: HTViewBorderLayer?
+    public var gradientLayer: CAGradientLayer?
+    
     /// 添加指定位置的边框
     public func addBorder(sides: Set<HTViewBorderSide>, borderWidth: CGFloat, borderColor: UIColor) {
-        
+        internalAddBorder(sides: sides, borderWidth: borderWidth, borderColor: borderColor)
+    }
+    
+    /// 专供 oc 使用的
+    @objc public func addBorderWithSides(_ sides: NSSet, borderWidth: CGFloat, borderColor: UIColor) {
+        let swiftSides = Set(sides.compactMap { 
+            ($0 as? NSNumber).map {  
+                HTViewBorderSide(rawValue: $0.intValue)
+            }
+        }.compactMap { $0 })
+        internalAddBorder(sides: swiftSides, borderWidth: borderWidth, borderColor: borderColor)
+    }
+    
+    private func internalAddBorder(sides: Set<HTViewBorderSide>, borderWidth: CGFloat, borderColor: UIColor) {
         if let bLayer = borderLayer {
             bLayer.sides = sides
             bLayer.lineWidth = borderWidth
@@ -31,23 +46,21 @@ public class HTView: UIView {
             self.layer.addSublayer(bLayer)
             bLayer.frame = bounds
             bLayer.update(cornerRadius: self.layer.cornerRadius, viewSize: bounds.size)
-            
             borderLayer = bLayer
         }
     }
     
     
-    public var gradientLayer: CAGradientLayer?
     /// 添加渐变色背景: colors和locations个数一致. 取值范围 0~1.0
     /// - Parameters:
     ///   - colors: 渐变颜色
     ///   - locations: 渐变位置. 个数和colors保持一致(0~1.0)
     ///   - startPoint: 开始位置(0~1.0)
     ///   - endPoint: 结束位置(0~1.0)
-    public func addGradientBackground(colors: [UIColor], 
-                                      locations: [Double], 
-                                      startPoint: CGPoint = CGPoint(x: 0, y: 0.5), 
-                                      endPoint: CGPoint = CGPoint(x: 1.0, y: 0.5)) {
+    @objc public func addGradientBackground(colors: [UIColor], 
+                                            locations: [Double], 
+                                            startPoint: CGPoint = CGPoint(x: 0, y: 0.5), 
+                                            endPoint: CGPoint = CGPoint(x: 1.0, y: 0.5)) {
         
         guard colors.count == locations.count else {
             HTLogs.logFatal("HTCustomView.addGradientBackground 参数错误1. colors[\(colors.count)] locations[\(locations.count)], locations=\(locations)")
@@ -96,7 +109,7 @@ public class HTView: UIView {
     
     
     /// 设置点击事件
-    public var didClick: ( (_ viewTag:Int)->Void )? {
+    @objc public var didClick: ( (_ viewTag:Int)->Void )? {
         didSet {
             if didClick == nil {
                 if self.tapG != nil {
@@ -112,6 +125,7 @@ public class HTView: UIView {
             }
         }
     }
+    
     private var tapG: UITapGestureRecognizer?
     @objc private func tapGAction(_ gesture: UITapGestureRecognizer) {
         if let action = didClick {
@@ -119,11 +133,8 @@ public class HTView: UIView {
         }
     }
     
-    
-    
-    
     /// 处理 border 和 gradientLayer 的更新
-    public override func layoutSubviews() {
+    @objc public override func layoutSubviews() {
         super.layoutSubviews()
         
         if let layer = borderLayer {

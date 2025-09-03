@@ -9,19 +9,19 @@ import Foundation
 import UIKit
 
 /// 图片文字自定义布局按钮
-public class HTButton: UIButton {
+@objc public class HTButton: UIButton {
     
     /// 图片相对文字的布局
-    public enum HTButtonImageLayout {
-        case top
+    @objc public enum HTButtonImageLayout: Int {
+        case top = 0
         case bottom
         case left
         case right
     }
     
     /// 内容的整体布局
-    public enum HTButtonContentLayout {
-        case center
+    @objc public enum HTButtonContentLayout: Int {
+        case center = 0
         case left
         case right
         
@@ -44,7 +44,7 @@ public class HTButton: UIButton {
     var imageLayout: HTButtonImageLayout = .left
     var contentLayout: HTButtonContentLayout = .center
     
-    init(imageSize: CGSize, spacing: CGFloat, imageLayout: HTButtonImageLayout, contentLayout: HTButtonContentLayout = .center) {
+    @objc public init(imageSize: CGSize, spacing: CGFloat, imageLayout: HTButtonImageLayout, contentLayout: HTButtonContentLayout = .center) {
         self.imageSize = imageSize
         self.spacing = spacing
         self.imageLayout = imageLayout
@@ -60,6 +60,7 @@ public class HTButton: UIButton {
         super.layoutSubviews()
         updateUI()
     }
+    
     func updateUI() {
         guard let label = self.titleLabel, let imageV = self.imageView else { return }
         
