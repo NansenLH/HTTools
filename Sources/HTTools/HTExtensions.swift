@@ -6,6 +6,13 @@ import Foundation
 import UIKit
 import HTLogs
 
+extension Array {
+    public subscript(safe index: Int) -> Element? {
+        return (0..<count).contains(index) ? self[index] : nil
+    }
+}
+
+
 public struct HTWrapper<T>: @unchecked Sendable {
     public let t: T
     public init(_ t: T) {
@@ -982,23 +989,13 @@ extension HTWrapper where T == Dictionary<String, Any> {
 }
 
 // MARK: - Array - Extension
-extension Array {
-    subscript(safe index: Index) -> Element? {
-        return indices.contains(index) ? self[index] : nil
+extension Array : HTCompatibleValue {}
+extension HTWrapper where T: Collection {
+    public func safeIndex(_ index: T.Index) -> T.Element? {
+        return t.indices.contains(index) ? t[index] : nil
     }
-}
-
-extension Array<Any> : HTCompatibleValue {}
+} 
 extension HTWrapper where T == Array<Any> {
-    
-    func safeIndex(index: Int) -> Any? {
-        if index >= 0, index < t.count {
-            return t[index]
-        }
-        else {
-            return nil
-        }
-    }
     
     func makeSerializable() -> [Any] {
         
