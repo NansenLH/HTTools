@@ -83,4 +83,21 @@ public struct HTColor {
             return (cgColor[0], cgColor[1], cgColor[2], cgColor[3])
         }
     }
+    
+    /// 从颜色from转变到另一个颜色
+    public static func colorChange(fromColor: UIColor, toColor: UIColor, percent: Double) -> UIColor {
+        let p = max(0, min(1, percent))
+        var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0
+        fromColor.getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
+        
+        var r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0
+        toColor.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
+        
+        let r = r1 + (r2-r1)*p
+        let g = g1 + (g2-g1)*p
+        let b = b1 + (b2-b1)*p
+        let a = a1 + (a2-a1)*p
+        
+        return UIColor(red: r, green: g, blue: b, alpha: a)
+    }
 }

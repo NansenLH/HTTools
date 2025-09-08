@@ -982,6 +982,11 @@ extension HTWrapper where T == Dictionary<String, Any> {
 }
 
 // MARK: - Array - Extension
+extension Collection {
+    subscript(safe index: Index) -> Element? {
+        return indices.contains(index) ? self[index] : nil
+    }
+}
 extension Array<Any> : HTCompatibleValue {}
 extension HTWrapper where T == Array<Any> {
     
