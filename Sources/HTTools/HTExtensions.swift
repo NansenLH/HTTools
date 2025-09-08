@@ -982,13 +982,23 @@ extension HTWrapper where T == Dictionary<String, Any> {
 }
 
 // MARK: - Array - Extension
-extension Collection {
+extension Array {
     subscript(safe index: Index) -> Element? {
         return indices.contains(index) ? self[index] : nil
     }
 }
+
 extension Array<Any> : HTCompatibleValue {}
 extension HTWrapper where T == Array<Any> {
+    
+    func safeIndex(index: Int) -> Any? {
+        if index >= 0, index < t.count {
+            return t[index]
+        }
+        else {
+            return nil
+        }
+    }
     
     func makeSerializable() -> [Any] {
         
