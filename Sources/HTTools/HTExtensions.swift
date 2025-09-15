@@ -538,7 +538,7 @@ extension HTWrapper where T: UIScrollView {
     /// 让 scrollView 中的某个 view 现实在顶部
     public func scrollViewToTop(view: UIView, animate: Bool) {
         let viewFrameInScrollView = view.superview?.convert(view.frame, to: t) ?? view.frame
-        let targetOffY = viewFrameInScrollView.origin.y + t.contentInset.top
+        let targetOffY = min(viewFrameInScrollView.origin.y + t.contentInset.top, t.contentSize.height-t.bounds.height) 
         t.setContentOffset(CGPoint(x: 0, y: targetOffY), animated: animate)
     }
 }
@@ -552,6 +552,14 @@ extension HTWrapper where T: UIStackView {
         t.alignment = .fill
         t.distribution = .fillEqually
         t.spacing = space
+    }
+    
+    /// 间距相等, 大小自身固定
+    public func stackViewConfigSpaceEqual(isVertical: Bool) {
+        t.axis = isVertical ? .vertical : .horizontal
+        t.distribution = .equalSpacing
+        t.alignment = .center
+        t.spacing = 0
     }
 }
 
