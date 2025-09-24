@@ -10,11 +10,34 @@ import UIKit
 
 
 public class HTTextView: UITextView {
+    
+    public convenience init(placeHolder: String,
+                            placeHolderColor: UIColor,
+                            textFont: UIFont,
+                            textColor: UIColor,
+                            lineSpace: CGFloat, 
+                            minHeight: CGFloat, 
+                            isAutoHeight: Bool,
+                            limitCount: Int
+    ) {
+        self.init(frame: .zero, textContainer: nil)
+    
+        self.placeHolder = placeHolder
+        self.placeHolderColor = placeHolderColor
+        self.font = textFont
+        self.textColor = textColor
+        self.lineSpace = lineSpace
+        self.minHeight = minHeight
+        self.isAutoHeight = isAutoHeight
+        self.limitCount = limitCount
+        self.showCounter = limitCount > 0
+    }
+    
     /// 占位文字
     public var placeHolder: String = "请输入内容..." {
         didSet {
             placeHolderLabel.text = placeHolder
-            placeHolderLabel.sizeToFit()
+            updatePlaceHolderLayout()
         }
     }
     
@@ -39,6 +62,7 @@ public class HTTextView: UITextView {
         didSet {
             if let f = font {
                 placeHolderLabel.font = font
+                updatePlaceHolderLayout()
                 updateLineHeight()
                 invalidateIntrinsicContentSize()
             }
@@ -108,7 +132,6 @@ public class HTTextView: UITextView {
         placeHolderLabel.text = placeHolder
         placeHolderLabel.textColor = placeHolderColor
         placeHolderLabel.font = self.font
-        placeHolderLabel.sizeToFit()
         
         addSubview(counterLabel)
         counterLabel.textColor = placeHolderColor
@@ -131,6 +154,9 @@ public class HTTextView: UITextView {
     }
     
     private func updatePlaceHolderLayout() {
+        
+        placeHolderLabel.sizeToFit()
+        
         let edgeInsets = self.textContainerInset
         let contentInsets = self.contentInset
         let left = edgeInsets.left + contentInsets.left
@@ -150,6 +176,14 @@ public class HTTextView: UITextView {
     }
     
     @objc private func textDidChange() {
+        
+        if let markedRange = self.markedTextRange {
+            if markedRange.start != markedRange.end {
+                placeHolderLabel.isHidden = true
+                return
+            }
+        }
+        
         updatePlaceholderVisibility()
         updateLineHeight()
         invalidateIntrinsicContentSize()
@@ -216,6 +250,8 @@ public class HTTextView: UITextView {
         return CGSizeMake(superSize.width, height)
     }
     
+    
+    
     override init(frame: CGRect, textContainer: NSTextContainer?) {
         super.init(frame: frame, textContainer: textContainer)
         createUI()
@@ -232,6 +268,13 @@ public class HTTextView: UITextView {
 
 extension HTTextView: UITextViewDelegate {
     public func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        
+        if let markedRange = textView.markedTextRange {
+            if markedRange.start != markedRange.end {
+                return true
+            }
+        }
+        
         guard limitCount > 0 else { return true }
         
         let currentText = textView.text ?? ""

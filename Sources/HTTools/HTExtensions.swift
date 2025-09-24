@@ -537,8 +537,15 @@ extension HTWrapper where T: UIScrollView {
     
     /// 让 scrollView 中的某个 view 现实在顶部
     public func scrollViewToTop(view: UIView, animate: Bool) {
+        if t.contentSize.height < t.bounds.height {
+            return
+        }
+        
         let viewFrameInScrollView = view.superview?.convert(view.frame, to: t) ?? view.frame
-        let targetOffY = min(viewFrameInScrollView.origin.y + t.contentInset.top, t.contentSize.height-t.bounds.height) 
+        var targetOffY = min(viewFrameInScrollView.origin.y + t.contentInset.top, t.contentSize.height-t.bounds.height)
+        if targetOffY < 0 {
+           targetOffY = 0 
+        }
         t.setContentOffset(CGPoint(x: 0, y: targetOffY), animated: animate)
     }
 }
