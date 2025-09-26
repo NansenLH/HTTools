@@ -32,7 +32,13 @@ public struct HTSize {
         guard let w = window else {
             return 20
         }
-        return w.safeAreaInsets.top
+        
+        if w.safeAreaInsets.top > 0 {
+            return w.safeAreaInsets.top
+        }
+        else {
+            return 20
+        }
     }()
     
     /// 是否全面屏
