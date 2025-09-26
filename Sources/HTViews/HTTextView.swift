@@ -76,6 +76,15 @@ public class HTTextView: UITextView {
         }
     }
     
+    public override var text: String! {
+        didSet {
+            updatePlaceholderVisibility()
+            updatePlaceHolderLayout()
+            updateLineHeight()
+            invalidateIntrinsicContentSize()
+        }
+    }
+    
     /// 设置最小高度
     public var minHeight: CGFloat = 200.0 {
         didSet {
@@ -104,6 +113,8 @@ public class HTTextView: UITextView {
             updateCounterLabel()
         }
     }
+    
+
     
     private let placeHolderLabel: UILabel = {
         let label = UILabel()
